@@ -2,13 +2,16 @@ package com.example.poc
 
 import android.app.Activity
 import android.app.PendingIntent
+import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Color
 import android.nfc.*
 import android.nfc.tech.Ndef
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -24,11 +27,22 @@ class MainActivity : Activity() {
     private lateinit var tvNFCContent: TextView
     private lateinit var message: TextView
     private lateinit var btnWrite: Button
+    private lateinit var connectionStatus: TextView
     private lateinit var binding: ActivityMainBinding
     var nfcAdapter: NfcAdapter? = null
     var pendingIntent: PendingIntent? = null
     var writeMode = false
     var myTag: Tag? = null
+
+    private val nfcConnectionContract = object : NFCConnectionContract {
+        override fun onCardConnected() {
+            connectionStatus.text = "Connection Status: Connected"
+        }
+
+        override fun onCardDisconnected() {
+            connectionStatus.text = "Connection Status: NFC not detected"
+        }
+    }
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +52,7 @@ class MainActivity : Activity() {
         tvNFCContent = binding.nfcContents
         message = binding.editMessage
         btnWrite = binding.button
+        connectionStatus = binding.connectionStatus
 
         btnWrite.setOnClickListener {
             try {
@@ -76,6 +91,10 @@ class MainActivity : Activity() {
         writeTagFilters = arrayOf(tagDetected)
     }
 
+    private fun onTagDiscovered(tag: Tag) {
+            Log.d(TAG, "onTagDiscovered: findTag = $tag")
+    }
+
     /******************************************************************************
      * Read From NFC Tag
      ****************************************************************************/
@@ -95,7 +114,7 @@ class MainActivity : Activity() {
     }
 
     private fun buildTagViews(msgs: Array<NdefMessage>) {
-        if (msgs == null || msgs.isEmpty()) return
+        if (msgs.isEmpty()) return
         var text = ""
         val payload = msgs[0].records[0].payload
         val textEncoding: Charset = if ((payload[0] and 128.toByte()).toInt() == 0) Charsets.UTF_8 else Charsets.UTF_16 // Get the Text Encoding
@@ -157,12 +176,14 @@ class MainActivity : Activity() {
         readFromIntent(intent)
         if (NfcAdapter.ACTION_TAG_DISCOVERED == intent.action) {
             myTag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+            nfcConnectionContract.onCardConnected()
         }
     }
 
     public override fun onPause() {
         super.onPause()
         WriteModeOff()
+        nfcConnectionContract.onCardDisconnected()
     }
 
     public override fun onResume() {

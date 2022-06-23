@@ -2,12 +2,28 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical" >
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/connectionStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="Connection Status: "
+        android:layout_marginTop="20dp"
+        android:textSize="20sp"
+        android:textColor="@android:color/holo_green_light"
+        android:textStyle="bold">
+    </TextView>
+
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Write a message: ">
+        android:text="Write a message: "
+        android:layout_marginTop="20dp"
+        android:textSize="20sp">
     </TextView>
 
     <LinearLayout
