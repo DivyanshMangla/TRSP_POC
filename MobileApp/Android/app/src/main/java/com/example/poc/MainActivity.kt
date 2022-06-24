@@ -25,6 +25,7 @@ class MainActivity : Activity() {
 
     lateinit var writeTagFilters: Array<IntentFilter>
     private lateinit var tvNFCContent: TextView
+    private lateinit var welcome: TextView
     private lateinit var message: TextView
     private lateinit var btnWrite: Button
     private lateinit var connectionStatus: TextView
@@ -50,9 +51,13 @@ class MainActivity : Activity() {
         setContentView(binding.root)
 
         tvNFCContent = binding.nfcContents
+        welcome = binding.welcome
         message = binding.editMessage
         btnWrite = binding.button
         connectionStatus = binding.connectionStatus
+
+        val userName = intent.getStringExtra("USER_DATA")
+        setUserName(userName)
 
         btnWrite.setOnClickListener {
             try {
@@ -60,7 +65,6 @@ class MainActivity : Activity() {
                     Toast.makeText(this, ERROR_DETECTED, Toast.LENGTH_LONG).show()
                 } else {
                     write(message.text.toString(), myTag)
-                    Toast.makeText(this, WRITE_SUCCESS, Toast.LENGTH_LONG).show()
                 }
             } catch (e: IOException) {
                 Toast.makeText(this, WRITE_ERROR, Toast.LENGTH_LONG).show()
@@ -89,6 +93,10 @@ class MainActivity : Activity() {
         val tagDetected = IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED)
         tagDetected.addCategory(Intent.CATEGORY_DEFAULT)
         writeTagFilters = arrayOf(tagDetected)
+    }
+
+    private fun setUserName(userName: String?) {
+        welcome.text = "Welcome "+userName
     }
 
     private fun onTagDiscovered(tag: Tag) {
@@ -143,11 +151,17 @@ class MainActivity : Activity() {
         // Get an instance of Ndef for the tag.
         val ndef = Ndef.get(tag)
         // Enable I/O
-        ndef.connect()
-        // Write the message
-        ndef.writeNdefMessage(message)
-        // Close the connection
-        ndef.close()
+        if (ndef != null){
+            ndef.connect()
+            // Write the message
+            ndef.writeNdefMessage(message)
+            // Close the connection
+            ndef.close()
+            Toast.makeText(this, WRITE_SUCCESS, Toast.LENGTH_LONG).show()
+        }else{
+            Toast.makeText(this, WRITE_ERROR, Toast.LENGTH_LONG).show()
+        }
+
     }
 
     @Throws(UnsupportedEncodingException::class)
